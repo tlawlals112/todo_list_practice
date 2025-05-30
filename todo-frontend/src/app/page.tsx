@@ -1,7 +1,8 @@
-"use client"
+// todo-frontend/src/app/page.tsx
+"use client"; // 맨 위에 "use client"; 지시자 유지
 
-import { useEffect, useState } from 'react';
-import Head from 'next/head';
+import { useEffect, useState, useCallback } from 'react'; // useCallback 추가
+import Head from 'next/head'; // Head는 App Router에서 다른 방식으로 사용되나, 현재 에러는 아니므로 일단 유지
 import {
   Container,
   Typography,
@@ -15,7 +16,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
+// import EditIcon from '@mui/icons-material/Edit'; // EditIcon은 사용하지 않으므로 삭제
 
 interface Todo {
   id: number;
@@ -29,13 +30,10 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'; // 백엔드 URL
+  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
-  useEffect(() => {
-    fetchTodos();
-  }, []);
-
-  const fetchTodos = async () => {
+  // fetchTodos 함수를 useCallback으로 감싸서 최적화
+  const fetchTodos = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/todos`);
@@ -45,13 +43,23 @@ export default function Home() {
       const data = await response.json();
       setTodos(data);
       setError(null);
-    } catch (err: any) {
-      setError(`Failed to fetch todos: ${err.message}`);
+    } catch (err: unknown) { // any 대신 unknown 사용
+      let errorMessage = 'Failed to fetch todos: An unknown error occurred.';
+      if (err instanceof Error) {
+        errorMessage = `Failed to fetch todos: ${err.message}`;
+      } else if (typeof err === 'string') {
+        errorMessage = `Failed to fetch todos: ${err}`;
+      }
+      setError(errorMessage);
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL]); // fetchTodos는 API_BASE_URL에 의존
+
+  useEffect(() => {
+    fetchTodos();
+  }, [fetchTodos]); // fetchTodos를 의존성 배열에 추가
 
   const addTodo = async () => {
     if (newTodo.trim() === '') return;
@@ -70,8 +78,14 @@ export default function Home() {
       setTodos([...todos, addedTodo]);
       setNewTodo('');
       setError(null);
-    } catch (err: any) {
-      setError(`Failed to add todo: ${err.message}`);
+    } catch (err: unknown) { // any 대신 unknown 사용
+      let errorMessage = 'Failed to add todo: An unknown error occurred.';
+      if (err instanceof Error) {
+        errorMessage = `Failed to add todo: ${err.message}`;
+      } else if (typeof err === 'string') {
+        errorMessage = `Failed to add todo: ${err}`;
+      }
+      setError(errorMessage);
       console.error(err);
     }
   };
@@ -86,8 +100,14 @@ export default function Home() {
       }
       setTodos(todos.filter((todo) => todo.id !== id));
       setError(null);
-    } catch (err: any) {
-      setError(`Failed to delete todo: ${err.message}`);
+    } catch (err: unknown) { // any 대신 unknown 사용
+      let errorMessage = 'Failed to delete todo: An unknown error occurred.';
+      if (err instanceof Error) {
+        errorMessage = `Failed to delete todo: ${err.message}`;
+      } else if (typeof err === 'string') {
+        errorMessage = `Failed to delete todo: ${err}`;
+      }
+      setError(errorMessage);
       console.error(err);
     }
   };
@@ -110,8 +130,14 @@ export default function Home() {
         )
       );
       setError(null);
-    } catch (err: any) {
-      setError(`Failed to update todo: ${err.message}`);
+    } catch (err: unknown) { // any 대신 unknown 사용
+      let errorMessage = 'Failed to update todo: An unknown error occurred.';
+      if (err instanceof Error) {
+        errorMessage = `Failed to update todo: ${err.message}`;
+      } else if (typeof err === 'string') {
+        errorMessage = `Failed to update todo: ${err}`;
+      }
+      setError(errorMessage);
       console.error(err);
     }
   };
